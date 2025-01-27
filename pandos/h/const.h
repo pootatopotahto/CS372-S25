@@ -8,14 +8,14 @@
  ****************************************************************************/
 
 /* Hardware & software constants */
-#define PAGESIZE		  4096			/* page size in bytes	*/
-#define WORDLEN			  4				  /* word size in bytes	*/
-
+#define PAGESIZE		4096			/* page size in bytes */
+#define WORDLEN			4				/* word size in bytes */
+#define MAXPROC			20				/* max concurrent processes	*/
 
 /* timer, timescale, TOD-LO and other bus regs */
 #define RAMBASEADDR		0x10000000
 #define RAMBASESIZE		0x10000004
-#define TODLOADDR		  0x1000001C
+#define TODLOADDR		0x1000001C
 #define INTERVALTMR		0x10000020	
 #define TIMESCALEADDR	0x10000024
 
