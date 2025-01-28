@@ -56,8 +56,7 @@ int emptyProcQ(pcb_PTR tp) {
 }
 
 void insertProcQ(pcb_PTR *tp, pcb_PTR p) {
-	if (emptyProcQ(p))
-		return;
+	if (p == NULL) return;
 
 	if (emptyProcQ(*tp)) {
 		*tp = p;
@@ -68,7 +67,63 @@ void insertProcQ(pcb_PTR *tp, pcb_PTR p) {
 
 	p->p_next = (*tp)->p_next;
 	p->p_prev = *tp;
-	p->p_next->p_next = p;
+	(*tp)->p_next->p_prev = p;
 	(*tp)->p_next = p;
 	*tp = p;
+}
+
+pcb_PTR removeProcQ(pcb_PTR *tp) {
+	if (emptyProcQ(*tp)) return NULL;
+
+	pcb_PTR pcbRemoved;
+	pcbRemoved = (*tp)->p_next;
+
+	if (pcbRemoved == *tp)
+		*tp = NULL;
+	else {
+		pcbRemoved->p_prev->p_next = pcbRemoved->p_next;
+		pcbRemoved->p_next->p_prev = pcbRemoved->p_prev;
+		*tp = pcbRemoved->p_prev;
+	}
+
+	pcbRemoved->p_next = pcbRemoved->p_prev = NULL;
+
+	return pcbRemoved;
+}
+
+pcb_PTR outProcQ(pcb_PTR *tp, pcb_PTR p) {
+	if (p == NULL || emptyProcQ(*tp)) return NULL;
+
+	pcb_PTR iter;
+	iter = *tp;
+
+	do {
+	 	if (iter == p) {
+	 		if (iter == *tp) {
+	 			if (iter->p_next == iter)
+	 				*tp = NULL;
+	 			else
+	 				*tp = (*tp)->p_prev;
+	 		}
+
+	 		iter->p_prev->p_next = iter->p_next;
+	 		iter->p_next->p_prev = iter->p_prev;
+	 		iter->p_next = NULL;
+	 		iter->p_prev = NULL;
+
+	 		return p;
+	 	}
+
+	 	iter = iter->p_next;
+
+	} while (iter != *tp);
+
+	return NULL;
+}
+
+
+pcb_PTR headProcQ(pcb_PTR tp) {
+	if (emptyProcQ(tp)) return NULL;
+
+	return tp->p_next;
 }

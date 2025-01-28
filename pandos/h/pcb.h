@@ -31,19 +31,19 @@ typedef struct pcb_t {
 	/*support_t			*p_supportStruct;	 ptr to support struct */
 } pcb_t, *pcb_PTR;
 
-extern void freePcb (pcb_PTR p);
-extern pcb_PTR allocPcb (void);
-extern void initPcbs (void);
+extern void 	freePcb 		(pcb_PTR p);
+extern pcb_PTR 	allocPcb 		(void);
+extern void 	initPcbs 		(void);
 
-extern pcb_PTR mkEmptyProcQ (); 
-extern int emptyProcQ (pcb_PTR tp);
-extern void insertProcQ (pcb_PTR *tp, pcb_PTR p);
+extern pcb_PTR 	mkEmptyProcQ	(void); 
+extern int 		emptyProcQ 		(pcb_PTR tp);
+extern void 	insertProcQ 	(pcb_PTR *tp, pcb_PTR p);
+
+extern pcb_PTR 	removeProcQ 	(pcb_PTR *tp);
+extern pcb_PTR 	outProcQ 	(pcb_PTR *tp, pcb_PTR p);
+extern pcb_PTR 	headProcQ 	(pcb_PTR tp);
 
 /*
-extern pcb_PTR removeProcQ (pcb_PTR *tp);
-extern pcb_PTR outProcQ (pcb_PTR *tp, pcb_PTR p);
-extern pcb_PTR headProcQ (pcb_PTR tp);
-
 extern int emptyChild (pcb_PTR p);
 extern void insertChild (pcb_PTR prnt, pcb_PTR p);
 extern pcb_PTR removeChild (pcb_PTR p);
