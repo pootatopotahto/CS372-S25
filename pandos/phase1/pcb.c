@@ -4,8 +4,8 @@
 
 #include "../h/pcb.h"
 
-HIDDEN pcb_PTR pcbFree_h = NULL;
 HIDDEN pcb_t pcbPool[MAXPROC];
+HIDDEN pcb_PTR pcbFree_h = NULL;
 
 /*  */
 void initPcbs(void) {
@@ -23,7 +23,7 @@ void freePcb(pcb_PTR p) {
 	pcbFree_h = p;
 }
 
-pcb_t *allocPcb(void) {
+pcb_PTR allocPcb(void) {
 	if (pcbFree_h == NULL) return NULL;
 
 	pcb_PTR pcbRm = pcbFree_h;
@@ -36,18 +36,39 @@ pcb_t *allocPcb(void) {
 	pcbRm->p_child = NULL;
 	pcbRm->p_sib = NULL;
 
-	pcbRm->p_s.s_entryHI = 0;
-    pcbRm->p_s.s_cause = 0;
-    pcbRm->p_s.s_status = 0;
-    pcbRm->p_s.s_pc = 0;
-
-    int i;
-    for (i = 0; i < STATEREGNUM; ++i) {
-        pcbRm->p_s.s_reg[i] = 0;
-    }
-
 	pcbRm->p_time = 0;
 	/* pcbRm->support_t = NULL; */
 
 	return pcbRm;
+}
+
+pcb_PTR mkEmptyProcQ(void) {
+	pcb_PTR t_procQ;
+	t_procQ = NULL;
+	return t_procQ;
+}
+
+int emptyProcQ(pcb_PTR tp) {
+	if (tp == NULL)
+		return TRUE;
+	else
+		return FALSE;
+}
+
+void insertProcQ(pcb_PTR *tp, pcb_PTR p) {
+	if (emptyProcQ(p))
+		return;
+
+	if (emptyProcQ(*tp)) {
+		*tp = p;
+		p->p_prev = p;
+		p->p_next = p;
+		return;
+	}
+
+	p->p_next = (*tp)->p_next;
+	p->p_prev = *tp;
+	p->p_next->p_next = p;
+	(*tp)->p_next = p;
+	*tp = p;
 }
