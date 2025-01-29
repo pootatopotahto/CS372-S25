@@ -99,5 +99,22 @@ typedef struct state_t {
 #define s_HI	s_reg[29]
 #define s_LO	s_reg[30]
 
+/* process control block type */
+typedef struct pcb_t {
+	/* process queue fields */
+	struct pcb_t		*p_next,		/* ptr to next entry*/
+						*p_prev,		/* ptr to prev entry*/
+
+	/* process tree fields */
+						*p_parent,		/* ptr to parent */
+						*p_child,		/* ptr to 1st child */
+						*p_sib_next,	/* ptr to next sibling */
+						*p_sib_prev;	/* ptr to prev sibling */
+
+	/* process status info */
+	state_t				p_s;			/* processor state */
+	cpu_t				p_time;			/* cpu time used by proc */
+	int 				*p_semAdd;		/* ptr to sema4 on which process blocked */
+} pcb_t, *pcb_PTR;
 
 #endif
