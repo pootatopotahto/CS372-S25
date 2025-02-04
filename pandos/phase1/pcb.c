@@ -15,12 +15,7 @@ void initPcbs(void) {
 	pcbFree_h = NULL;
 
 	for (i = 0; i < MAXPROC; ++i) {
-		pcbPool[i].p_next = pcbPool[i].p_prev = NULL;
-        pcbPool[i].p_parent = pcbPool[i].p_child = NULL;
-        pcbPool[i].p_sib_next = pcbPool[i].p_sib_prev = NULL;
-        pcbPool[i].p_time = 0;
-        pcbPool[i].p_semAdd = NULL;
-
+		/* doesn't use insertProcQ because it's easier to not init prev */
 		pcbPool[i].p_next = pcbFree_h;
 		pcbFree_h = &pcbPool[i];
 	}
@@ -34,7 +29,9 @@ void freePcb(pcb_PTR p) {
 }
 
 pcb_PTR allocPcb(void) {
-	pcb_PTR pcbRm = pcbFree_h;
+	pcb_PTR pcbRm;
+
+	pcbRm = pcbFree_h;
 
 	if (NULL == pcbFree_h) return NULL;
 
@@ -90,16 +87,18 @@ pcb_PTR outProcQ(pcb_PTR *tp, pcb_PTR p) {
 		return p;
 	}
 
-	for (iter = (*tp)->p_next; iter != *tp; iter = iter->p_next) {
-		if (iter == p) {
-			iter->p_prev->p_next = iter->p_next;
-			iter->p_next->p_prev = iter->p_prev;
-			*tp = (*tp)->p_prev;
+	/* this way iter will check against p twice */
 
-			iter->p_next = iter->p_prev = NULL;
+	for (iter = (*tp)->p_next; iter != *tp && iter != p; iter = iter->p_next);
 
-			return p;
-		}
+	if (iter == p) {
+		iter->p_prev->p_next = iter->p_next;
+		iter->p_next->p_prev = iter->p_prev;
+		*tp = (*tp)->p_prev;
+
+		iter->p_next = iter->p_prev = NULL;
+
+		return p;
 	}
 
 	return NULL;
@@ -144,7 +143,8 @@ pcb_PTR removeChild(pcb_PTR p) {
 pcb_PTR outChild(pcb_PTR p) {
 	if (NULL == p || NULL == p->p_parent) return NULL;
 
-	if (p->p_parent->p_child == p) /* Explicit in case first/only child*/
+	/* In case first/only child */
+	if (p->p_parent->p_child == p) 
 		p->p_parent->p_child = p->p_sib_next;
 
 	if (p->p_sib_prev != NULL)
