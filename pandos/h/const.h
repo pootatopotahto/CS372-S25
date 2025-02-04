@@ -11,6 +11,7 @@
 #define PAGESIZE		4096			/* page size in bytes */
 #define WORDLEN			4				/* word size in bytes */
 #define MAXPROC			20				/* max concurrent processes	*/
+#define MAX_INT			0x7FFFFFFF		/* max 32bit int value */
 
 /* timer, timescale, TOD-LO and other bus regs */
 #define RAMBASEADDR		0x10000000
@@ -27,6 +28,7 @@
 #define EOS				    '\0'
 
 #define NULL 			    ((void *)0xFFFFFFFF)
+#define DUMMYVARCOUNT		2
 
 /* device interrupts */
 #define DISKINT			  3
