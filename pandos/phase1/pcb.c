@@ -178,7 +178,7 @@ int emptyProcQ(pcb_PTR tp) {
  ***************************************************************/
 void insertProcQ(pcb_PTR *tp, pcb_PTR p) {
 	/* Ignore NULL process */
-	if (NULL == p) return;
+	if (NULL == p || NULL == tp) return;
 
 	/* If the queue is empty, initialize it with the new process */
 	if (emptyProcQ(*tp)) {
@@ -195,7 +195,7 @@ void insertProcQ(pcb_PTR *tp, pcb_PTR p) {
 	(*tp)->p_next = p;				/* Update the tail's next to point to new PCB */
 	*tp = p;						/* Update tail pointer to the newly inserted PCB */
 }
-
+	
 /***************************************************************
  *  removeProcQ - Removes the Head PCB from the Queue
  *
@@ -215,10 +215,10 @@ void insertProcQ(pcb_PTR *tp, pcb_PTR p) {
  ***************************************************************/
 pcb_PTR removeProcQ(pcb_PTR *tp) {
 	/* Return NULL if the queue is empty */
-	if (emptyProcQ(*tp)) return NULL;
+	if (emptyProcQ(*tp) || NULL == tp) return NULL;
 	
 	/* Remove and return the first PCB (head) from the queue */
-	return outProcQ(tp, (*tp)->p_next);
+	return outProcQ(tp, headProcQ(*tp));
 }
 
 /***************************************************************
@@ -244,11 +244,27 @@ pcb_PTR outProcQ(pcb_PTR *tp, pcb_PTR p) {
 	pcb_PTR iter;
 
 	/* Return NULL if queue is empty or p is NULL */
-	if (NULL == p || emptyProcQ(*tp)) return NULL;
+	if (NULL == p || emptyProcQ(*tp) || NULL == tp) return NULL;
 
 	/* If p is the only element in the queue, set queue to empty */
+	if (*tp == (*tp)->p_next) {
+		if (*tp == p) {
+			*tp = NULL;
+			return p;
+		}
+
+		return NULL;
+	}
+
 	if (p == *tp) {
-		*tp = NULL;
+		(*tp)->p_prev->p_next = (*tp)->p_next;
+		(*tp)->p_next->p_prev = (*tp)->p_prev;
+
+		iter = *tp; /* Use iter as dummy for resetting links */
+		iter->p_next = iter->p_prev = NULL;
+
+		*tp = (*tp)->p_prev;
+
 		return p;
 	}
 
@@ -257,11 +273,10 @@ pcb_PTR outProcQ(pcb_PTR *tp, pcb_PTR p) {
 
 	/* If p is found, remove it from the queue */
 	if (iter == p) {
-		iter->p_prev->p_next = iter->p_next;	/* Link previous node to next */
-		iter->p_next->p_prev = iter->p_prev;	/* Link next node to previous */
-		*tp = (*tp)->p_prev;					/* Update tail pointer if necessary */
+		iter->p_prev->p_next = iter->p_next;
+		iter->p_next->p_prev = iter->p_prev;
 
-		/* Disconnect p from the queue */
+		/* Reset removed pcb's links */
 		iter->p_next = iter->p_prev = NULL;
 
 		/* Return the removed PCB */
