@@ -115,6 +115,9 @@ typedef struct pcb_t {
 	state_t			p_s;			/* processor state */
 	cpu_t			p_time;			/* cpu time used by proc */
 	int 			*p_semAdd;		/* ptr to sema4 on which process blocked */
+	/*Not implemented in Phase 1
+	support layer information 
+	support_t		*p_semAdd;		 ptr to support struct */
 } pcb_t, *pcb_PTR;
 
 /* sempahore descriptor type */
