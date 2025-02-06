@@ -254,8 +254,8 @@ pcb_PTR outProcQ(pcb_PTR *tp, pcb_PTR p) {
 
 	/* Case 3: p is the tail of the queue */
 	if (p == *tp) {
-		(*tp)->p_prev->p_next = (*tp)->p_next;	/* Bypass p in forward direction */
-		(*tp)->p_next->p_prev = (*tp)->p_prev;	/* Bypass p in backward direction */
+		(*tp)->p_prev->p_next = (*tp)->p_next;	/* Connect previous node to the next node */
+		(*tp)->p_next->p_prev = (*tp)->p_prev;	/* Connect next node to the previous node */
 
 		iter = *tp;								/* Use iter as dummy for resetting links */
 		iter->p_next = iter->p_prev = NULL;
@@ -270,9 +270,8 @@ pcb_PTR outProcQ(pcb_PTR *tp, pcb_PTR p) {
 
 	/* If p is found, remove it from the queue */
 	if (iter == p) {
-		iter->p_prev->p_next = iter->p_next;	/* Bypass p in forward direction */
-		iter->p_next->p_prev = iter->p_prev;	/* Bypass p in backward direction */
-
+		iter->p_prev->p_next = iter->p_next;	/* Connect the previous node to the next node */
+		iter->p_next->p_prev = iter->p_prev;	/* Connect the next node to the previous node */
 		/* Reset removed pcb's links */
 		iter->p_next = iter->p_prev = NULL;
 
