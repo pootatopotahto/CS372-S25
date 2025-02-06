@@ -247,19 +247,19 @@ void initASL(void) {
 	semdFree_h = semd_h = NULL;																													
 
 	/* Step 1: Initialize the Free List */
-	for (i = 0; i < MAXPROC; ++i)
+	for (i = 0; i < MAXPROC; ++i){
 		/* Each descriptor points to the next in the Free List */
 		semdTable[i] = (semd_t) {&semdTable[i + 1], (int*) NULL, mkEmptyProcQ()};
-
+	}
 	/* Last element of the Free List should point to NULL */
 	semdTable[MAXPROC - 1].s_next = NULL;		
 	/* Set the head of the Free List to the first descriptor */									
 	semdFree_h = &semdTable[0];														
 
 	/* Step 2: Initialize Dummy Nodes for ASL */
-	/* Dummy Head Node (s_semAdd = 0) */
+	/* Dummy Head Node (s_semAdd <- 0) */
 	semdTable[MAXPROC] = (semd_t) {&semdTable[MAXPROC + 1], (int*) 0, mkEmptyProcQ()};
-	/* Dummy Tail Node (s_semAdd = MAX_INT) */
+	/* Dummy Tail Node (s_semAdd <- MAX_INT) */
 	semdTable[MAXPROC + 1] = (semd_t) {NULL, (int*) MAX_INT, mkEmptyProcQ()};
 	/* Set the head of ASL to the Dummy Head Node */
 	semd_h = &semdTable[MAXPROC];
