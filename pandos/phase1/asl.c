@@ -8,10 +8,38 @@
 HIDDEN semd_PTR semd_h;
 HIDDEN semd_PTR semdFree_h;
 
+/* return at node right brefore regardless */
+static semd_PTR traverseASL(int *semAdd) {
+	semd_PTR iter;
+
+	if (NULL == semAdd) return NULL;
+
+	for (iter = semd_h;
+		 semAdd > iter->s_next->s_semAdd && iter->s_semAdd < (int*) MAX_INT; 
+		 iter = iter->s_next);	
+
+	return iter;
+}
+
+static void removeEmptySemd(semd_PTR semdLoc) {
+    semd_PTR semdCurr;
+
+    if (NULL == semdLoc) return;
+
+    semdCurr = semdLoc->s_next;
+    
+    if (NULL == semdCurr || !emptyProcQ(semdCurr->s_procQ)) return;
+
+    semdLoc->s_next = semdCurr->s_next;
+    semdCurr->s_procQ = mkEmptyProcQ();
+    semdCurr->s_next = semdFree_h;
+    semdFree_h = semdCurr;
+}
+
 int insertBlocked(int *semAdd, pcb_PTR p) {
 	semd_PTR semdIns, semdLoc;
 
-	if (NULL == p) return TRUE;
+	if (NULL == p || NULL == semAdd) return TRUE;
 
 	p->p_semAdd = semAdd;
 
@@ -39,44 +67,27 @@ int insertBlocked(int *semAdd, pcb_PTR p) {
 }
 
 pcb_PTR removeBlocked(int *semAdd) {
-	semd_PTR semdLoc, semdCurr;
-	pcb_PTR pcbRm;
-
-	semdLoc = traverseASL(semAdd);
-	semdCurr = semdLoc->s_next;
-
-	if (semdLoc->s_next->s_semAdd != semAdd) return NULL;
-
-	pcbRm = removeProcQ(&(semdLoc->s_next->s_procQ));
-
-	pcbRm->p_semAdd = NULL;
-
-	if (emptyProcQ(semdCurr->s_procQ)) {
-		semdLoc->s_next = semdCurr->s_next;
-		semdCurr->s_next = semdFree_h;
-		semdFree_h = semdCurr;
-	}
-
-	return pcbRm;
+	return outBlocked(headBlocked(semAdd));
 }
 
 pcb_PTR outBlocked(pcb_PTR p) {
-	semd_PTR semdLoc, semdCurr;
+	semd_PTR semdLoc;
+	pcb_PTR pcbRm;
 
-	if (NULL == p) return NULL;
+	if (NULL == p || NULL == p->p_semAdd) return NULL;
 
-	semdLoc = traverseASL(p->p_semAdd);
-	semdCurr = semdLoc->s_next;
+    semdLoc = traverseASL(p->p_semAdd);
 
-	if (semdCurr->s_semAdd != p->p_semAdd) return NULL;
+    if (semdLoc->s_next->s_semAdd != p->p_semAdd || emptyProcQ(semdLoc->s_next->s_procQ)) return NULL;
 
-	if (emptyProcQ(semdCurr->s_procQ)) {
-		semdLoc->s_next = semdCurr->s_next;
-		semdCurr->s_next = semdFree_h;
-		semdFree_h = semdCurr;
-	}
-
-	return outProcQ(&(semdCurr->s_procQ), p);
+    pcbRm = outProcQ(&(semdLoc->s_next->s_procQ), p);
+    
+    if (NULL != pcbRm) {
+        pcbRm->p_semAdd = NULL;
+        removeEmptySemd(semdLoc);
+    }
+    
+    return pcbRm;
 }
 
 pcb_PTR headBlocked(int *semAdd) {
@@ -95,13 +106,14 @@ pcb_PTR headBlocked(int *semAdd) {
 
 void initASL(void) {
 	int i;
-
 	static semd_t semdTable[MAXPROC + DUMMYVARCOUNT];
+
+	semdFree_h = semd_h = NULL;
 
 	/* arrays are always stored sequentially in memory */
 
 	for (i = 0; i < MAXPROC; ++i)
-		semdTable[i] = (semd_t) {&semdTable[i + 1], NULL, mkEmptyProcQ()};
+		semdTable[i] = (semd_t) {&semdTable[i + 1], (int*) NULL, mkEmptyProcQ()};
 
 	semdTable[MAXPROC - 1].s_next = NULL;
 	semdFree_h = &semdTable[0];
@@ -110,18 +122,3 @@ void initASL(void) {
 	semdTable[MAXPROC + 1] = (semd_t) {NULL, (int*) MAX_INT, mkEmptyProcQ()};
 	semd_h = &semdTable[MAXPROC];
 }
-
-/* return at node right brefore regardless */
-semd_PTR traverseASL(int *semAdd) {
-	semd_PTR iter;
-
-	for (iter = semd_h;
-		 semAdd > iter->s_next->s_semAdd && iter->s_semAdd < (int*) MAX_INT; 
-		 iter = iter->s_next);	
-
-	return iter;
-}
-
-/*
-Need dealloc helper
-*/
