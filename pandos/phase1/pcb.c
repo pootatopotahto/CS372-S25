@@ -172,9 +172,6 @@ int emptyProcQ(pcb_PTR tp) {
  *  Parameters:
  *    - tp: Pointer to the tail of the queue.
  *    - p:  PCB to be inserted.
- *
- *  Side Effects:
- *    - Updates `tp` to point to the new tail.
  ***************************************************************/
 void insertProcQ(pcb_PTR *tp, pcb_PTR p) {
 	/* Ignore NULL process */
@@ -185,7 +182,6 @@ void insertProcQ(pcb_PTR *tp, pcb_PTR p) {
 		*tp = p;
 		p->p_prev = p->p_next = p;	/* Circular list: p points to itself */
         return;
-		return;
 	}
 
 	/* Insert new PCB at the tail */
@@ -243,39 +239,39 @@ pcb_PTR removeProcQ(pcb_PTR *tp) {
 pcb_PTR outProcQ(pcb_PTR *tp, pcb_PTR p) {
 	pcb_PTR iter;
 
-	/* Return NULL if queue is empty or p is NULL */
+	/* Case 1: Queue is empty, tp is NULL, or p is NULL */
 	if (NULL == p || emptyProcQ(*tp) || NULL == tp) return NULL;
 
-	/* If p is the only element in the queue, set queue to empty */
+	/* Case 2: p is the only element in the queue */
 	if (*tp == (*tp)->p_next) {
-		if (*tp == p) {
-			*tp = NULL;
+		if (*tp == p) {	/* Only element matches */
+			*tp = NULL;	/* Queue is now empty */
 			return p;
 		}
 
-		return NULL;
+		return NULL;	/* p was not found in the queue */
 	}
 
+	/* Case 3: p is the tail of the queue */
 	if (p == *tp) {
-		(*tp)->p_prev->p_next = (*tp)->p_next;
-		(*tp)->p_next->p_prev = (*tp)->p_prev;
+		(*tp)->p_prev->p_next = (*tp)->p_next;	/* Connect previous node to the next node */
+		(*tp)->p_next->p_prev = (*tp)->p_prev;	/* Connect next node to the previous node */
 
-		iter = *tp; /* Use iter as dummy for resetting links */
+		iter = *tp;								/* Use iter as dummy for resetting links */
 		iter->p_next = iter->p_prev = NULL;
 
-		*tp = (*tp)->p_prev;
+		*tp = (*tp)->p_prev;					/* Update tail pointer */
 
 		return p;
 	}
 
-	/* Traverse the queue to find p */
+	/* Case 4: p is somewhere in the queue (not the tail) */
 	for (iter = (*tp)->p_next; iter != *tp && iter != p; iter = iter->p_next);
 
 	/* If p is found, remove it from the queue */
 	if (iter == p) {
-		iter->p_prev->p_next = iter->p_next;
-		iter->p_next->p_prev = iter->p_prev;
-
+		iter->p_prev->p_next = iter->p_next;	/* Connect the previous node to the next node */
+		iter->p_next->p_prev = iter->p_prev;	/* Connect the next node to the previous node */
 		/* Reset removed pcb's links */
 		iter->p_next = iter->p_prev = NULL;
 
@@ -283,7 +279,7 @@ pcb_PTR outProcQ(pcb_PTR *tp, pcb_PTR p) {
 		return p;
 	}
 
-	/* p was not found in the queue */
+	/* Case 5: p was not found in the queue */
 	return NULL;
 }
 
@@ -350,10 +346,6 @@ int emptyChild(pcb_PTR p) {
  *  Parameters:
  *    - prnt: Pointer to the parent PCB.
  *    - p:    Pointer to the child PCB to insert.
- *
- *  Side Effects:
- *    - Updates `p->p_parent` to establish the parent-child link.
- *    - Modifies `prnt->p_child` to track the first child.
  ***************************************************************/
 	
 void insertChild(pcb_PTR prnt, pcb_PTR p) {
@@ -369,7 +361,7 @@ void insertChild(pcb_PTR prnt, pcb_PTR p) {
 		p->p_sib_next = p->p_sib_prev = NULL;	/* No siblings */
 		return;
 	}
-	/* Insert p at the front of the sibling list */
+	/* Insert p at the front of the sibling list*/
 	p->p_sib_next = prnt->p_child;	/* New child's next sibling is the current first child */
 	p->p_sib_next->p_sib_prev = p;	/* Update previous pointer of the old first child */
 	prnt->p_child = p;				/* Update parent's first child pointer to p */
